@@ -3,6 +3,10 @@ use std::time::Duration;
 use tui::{
     backend::{CrosstermBackend},
     Terminal,
+    layout::{Constraint, Direction, Layout, Rect},
+    widgets::{Block, Borders, Paragraph},
+    text::Text,
+    Frame
 };
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
@@ -48,6 +52,75 @@ pub fn tick(terminal: &mut Terminal<CrosstermBackend<std::io::Stdout>>, app_inst
             }
         }
     }
+    terminal.draw(|f| ui(f, app_inst))?;
     Ok(())
 }
 
+fn ui(f: &mut Frame<CrosstermBackend<std::io::Stdout>>, app_inst: &mut app::App)
+{
+   let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(
+            [
+                Constraint::Percentage(10),
+                Constraint::Percentage(80),
+            ].as_ref()
+        )
+        .split(f.size());
+    render_tabs(f, chunks[0], app_inst);
+    render_main_space(f, chunks[1], app_inst);
+}
+
+fn render_tabs(f: &mut Frame<CrosstermBackend<std::io::Stdout>>, area: Rect, app_inst: &mut app::App)
+{
+   let chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints(
+            [
+                Constraint::Percentage(30),
+                Constraint::Percentage(40),
+                Constraint::Percentage(30),
+            ].as_ref()
+        )
+        .split(area);
+
+    let block = Block::default().borders(Borders::ALL);
+    f.render_widget(block, area);
+    render_space_info(f, chunks[0], app_inst);
+    render_spaces(f, chunks[1], app_inst);
+    render_profile(f, chunks[2], app_inst);
+}
+
+fn render_space_info(f: &mut Frame<CrosstermBackend<std::io::Stdout>>, area: Rect, app_inst: &mut app::App)
+{
+    let space_info = Block::default().title("Space Info").borders(Borders::ALL);
+    f.render_widget(space_info, area);
+}
+fn render_spaces(f: &mut Frame<CrosstermBackend<std::io::Stdout>>, area: Rect, app_inst: &mut app::App)
+{
+    let spaces = Block::default().title("Spaces").borders(Borders::ALL);
+    f.render_widget(spaces, area);
+}
+fn render_profile(f: &mut Frame<CrosstermBackend<std::io::Stdout>>, area: Rect, app_inst: &mut app::App)
+{
+    let block = Block::default().title("Profile").borders(Borders::ALL);
+    let txt = Paragraph::new(app_inst.profile.name.clone()).block(block);
+    f.render_widget(txt, area);
+}
+
+fn render_main_space(f: &mut Frame<CrosstermBackend<std::io::Stdout>>, area: Rect, app_inst: &mut app::App)
+{
+   let chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints(
+            [
+                Constraint::Percentage(20),
+                Constraint::Percentage(80),
+            ].as_ref()
+        )
+        .split(area);
+   let l_block = Block::default().title("Channels").borders(Borders::ALL);
+   f.render_widget(l_block, chunks[0]);
+   let m_block = Block::default().title("Text").borders(Borders::ALL);
+   f.render_widget(m_block, chunks[1]);
+}

@@ -10,17 +10,15 @@ fn main() -> Result<()>
     logging::setup_logging()?;
     let mut term = terminal::setup_tui().expect("Failed to setup terminal");
 
-    let mut app = app::App {
-        running: true
-    };
-
     let mut last_t = Instant::now();
     let tick_rate = Duration::from_millis(TICK_RATE_MS);
+    log::info!("Initializing App");
+    let mut app = app::init(); 
     log::info!("Starting Main Loop");
     loop {
         terminal::tick(&mut term, &mut app)?;
         if last_t.elapsed() >= tick_rate {
-            app::tick();
+            app::tick()?;
             last_t = Instant::now();
         }
         if !app.running {
